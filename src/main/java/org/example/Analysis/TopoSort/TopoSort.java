@@ -9,18 +9,22 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DefaultListenableGraph;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class TopoSort {
-    public static void performTopologicalSortAndVisualize(GraphManager graphManager) {
+    public static List<String> performTopologicalSortAndVisualize(GraphManager graphManager) {
         // Convert GraphManager to ListenableGraph
         ListenableGraph<String, DefaultEdge> graph = convertToJGraphTGraph(graphManager);
 
         // Perform topological sorting
-        List<String> topologicalOrder = topologicalSort(graph,graphManager);
+        List<String> topologicalOrder = topologicalSort(graph, graphManager);
 
         // Visualize the topological order
         visualizeTopologicalOrder(topologicalOrder);
+
+        return topologicalOrder;
     }
 
     private static ListenableGraph<String, DefaultEdge> convertToJGraphTGraph(GraphManager graphManager) {
@@ -43,8 +47,25 @@ public class TopoSort {
 
     private static List<String> topologicalSort(ListenableGraph<String, DefaultEdge> graph, GraphManager graphManager) {
         List<String> topologicalOrder = new ArrayList<>();
+        Set<String> visited = new HashSet<>();
+        Set<String> nodesWithEmptyAdjacencyLists = new HashSet<>();
+
+        // Find nodes with empty adjacency lists and start DFS from them
         for (String vertex : graph.vertexSet()) {
-            topologicalSortUtil(graph, vertex, topologicalOrder, graphManager);
+            if (graphManager.getNode(vertex).getAdjacencyList().isEmpty()) {
+                nodesWithEmptyAdjacencyLists.add(vertex);
+            }
+        }
+
+        for (String vertex : nodesWithEmptyAdjacencyLists) {
+            topologicalSortUtil(graph, vertex, visited, topologicalOrder, graphManager);
+        }
+
+        // Find nodes with no incoming edges and start DFS from them
+        for (String vertex : graph.vertexSet()) {
+            if (!hasIncomingEdges(graph, vertex)) {
+                topologicalSortUtil(graph, vertex, visited, topologicalOrder, graphManager);
+            }
         }
 
         return topologicalOrder;
@@ -52,18 +73,28 @@ public class TopoSort {
 
     private static void topologicalSortUtil(ListenableGraph<String, DefaultEdge> graph,
                                             String vertex,
+                                            Set<String> visited,
                                             List<String> topologicalOrder,
                                             GraphManager manager) {
         GraphNode node = manager.getNode(vertex);
-        if (!node.isVisited) {
-            node.setVisited(true);
+        if (!visited.contains(vertex)) {
+            visited.add(vertex);
             for (DefaultEdge edge : graph.outgoingEdgesOf(vertex)) {
                 String nextVertex = graph.getEdgeTarget(edge);
-                topologicalSortUtil(graph, nextVertex, topologicalOrder, manager);
+                topologicalSortUtil(graph, nextVertex, visited, topologicalOrder, manager);
             }
-            // Add to the beginning of the list for topological order
-            topologicalOrder.add(0, vertex);
+            // Add to the end of the list for topological order
+            topologicalOrder.add(vertex);
         }
+    }
+
+    private static boolean hasIncomingEdges(ListenableGraph<String, DefaultEdge> graph, String vertex) {
+        for (String v : graph.vertexSet()) {
+            if (graph.containsEdge(v, vertex)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void visualizeTopologicalOrder(List<String> topologicalOrder) {
