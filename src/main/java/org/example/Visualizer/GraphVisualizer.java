@@ -1,16 +1,19 @@
 package org.example.Visualizer;
+
 import com.mxgraph.layout.mxCompactTreeLayout;
 import com.mxgraph.layout.mxIGraphLayout;
 import com.mxgraph.swing.mxGraphComponent;
+import com.mxgraph.util.mxRectangle;
 import com.mxgraph.view.mxGraph;
 import org.jgrapht.ListenableGraph;
 import org.jgrapht.graph.DefaultEdge;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 
 public class GraphVisualizer {
-    public static void visualizeGraph(ListenableGraph<String, DefaultEdge> g,  String title) {
+    public static void visualizeGraph(ListenableGraph<String, DefaultEdge> g, String title) {
         mxGraph graph = new mxGraph();
         Object parent = graph.getDefaultParent();
         graph.getModel().beginUpdate();
@@ -30,13 +33,24 @@ public class GraphVisualizer {
         } finally {
             graph.getModel().endUpdate();
         }
-        mxIGraphLayout layout = new mxCompactTreeLayout(graph);
+
+        // Set very large spacing between nodes
+        mxIGraphLayout layout = new mxCompactTreeLayout(graph) {
+            @Override
+            public mxRectangle getVertexBounds(Object vertex) {
+                mxRectangle bounds = super.getVertexBounds(vertex);
+                bounds.setWidth(bounds.getWidth() + 200); // Increase width to create space
+                return bounds;
+            }
+        };
+
         layout.execute(parent);
+
         JFrame frame = new JFrame(title);
         mxGraphComponent graphComponent = new mxGraphComponent(graph);
         frame.getContentPane().add(graphComponent);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setPreferredSize(new Dimension(1200, 600));
+        frame.setPreferredSize(new Dimension(1200, 800));
         frame.pack();
         frame.setVisible(true);
     }

@@ -4,13 +4,12 @@ import org.example.GraphManager.GraphManager;
 import org.example.GraphNode.GraphNode;
 import org.example.Visualizer.GraphVisualizer;
 import org.jgrapht.ListenableGraph;
+import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DefaultListenableGraph;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class TopoSort {
     public static void performTopologicalSortAndVisualize(GraphManager graphManager) {
@@ -18,10 +17,10 @@ public class TopoSort {
         ListenableGraph<String, DefaultEdge> graph = convertToJGraphTGraph(graphManager);
 
         // Perform topological sorting
-        List<String> topologicalOrder = topologicalSort(graph);
+        List<String> topologicalOrder = topologicalSort(graph,graphManager);
 
-        // Visualize the sorted graph
-        GraphVisualizer.visualizeGraph(graph,"TopoSort");
+        // Visualize the topological order
+        visualizeTopologicalOrder(topologicalOrder);
     }
 
     private static ListenableGraph<String, DefaultEdge> convertToJGraphTGraph(GraphManager graphManager) {
@@ -42,14 +41,10 @@ public class TopoSort {
         return g;
     }
 
-    private static List<String> topologicalSort(ListenableGraph<String, DefaultEdge> graph) {
+    private static List<String> topologicalSort(ListenableGraph<String, DefaultEdge> graph, GraphManager graphManager) {
         List<String> topologicalOrder = new ArrayList<>();
-        Set<String> visited = new HashSet<>();
-
         for (String vertex : graph.vertexSet()) {
-            if (!visited.contains(vertex)) {
-                topologicalSortUtil(graph, vertex, visited, topologicalOrder);
-            }
+            topologicalSortUtil(graph, vertex, topologicalOrder, graphManager);
         }
 
         return topologicalOrder;
@@ -57,17 +52,31 @@ public class TopoSort {
 
     private static void topologicalSortUtil(ListenableGraph<String, DefaultEdge> graph,
                                             String vertex,
-                                            Set<String> visited,
-                                            List<String> topologicalOrder) {
-        visited.add(vertex);
-
-        for (DefaultEdge edge : graph.outgoingEdgesOf(vertex)) {
-            String nextVertex = graph.getEdgeTarget(edge);
-            if (!visited.contains(nextVertex)) {
-                topologicalSortUtil(graph, nextVertex, visited, topologicalOrder);
+                                            List<String> topologicalOrder,
+                                            GraphManager manager) {
+        GraphNode node = manager.getNode(vertex);
+        if (!node.isVisited) {
+            node.setVisited(true);
+            for (DefaultEdge edge : graph.outgoingEdgesOf(vertex)) {
+                String nextVertex = graph.getEdgeTarget(edge);
+                topologicalSortUtil(graph, nextVertex, topologicalOrder, manager);
             }
+            // Add to the beginning of the list for topological order
+            topologicalOrder.add(0, vertex);
+        }
+    }
+
+    private static void visualizeTopologicalOrder(List<String> topologicalOrder) {
+        // Create a new graph for visualization
+        ListenableGraph<String, DefaultEdge> orderedGraph =
+                new DefaultListenableGraph<>(new DefaultDirectedGraph<>(DefaultEdge.class));
+
+        // Add vertices in the order specified by topological sorting
+        for (String vertex : topologicalOrder) {
+            orderedGraph.addVertex(vertex);
         }
 
-        topologicalOrder.add(0, vertex); // Add to the beginning of the list for topological order
+        // Visualize the ordered graph
+        GraphVisualizer.visualizeGraph(orderedGraph, "Topological Order");
     }
 }
