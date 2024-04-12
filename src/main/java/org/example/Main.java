@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static org.example.Analysis.TopoSort.TopoSort.performTopologicalSortAndVisualize;
+import static org.example.Utils.TortoiseHare.DetectCycles.detectAndPrintCycles;
 
 public class Main {
     public static void main(String[] args) {
@@ -29,11 +30,14 @@ public class Main {
                 Map.Entry<String, JsonNode> entry = fields.next();
                 String nodeName = entry.getKey();
                 List<String> adjacencyList = objectMapper.convertValue(entry.getValue(), new TypeReference<List<String>>() {});
-                GraphNode node = new GraphNode(nodeName, adjacencyList);
-                graphManager.addNode(node);
+                // Filter out keys with empty arrays
+                if (!adjacencyList.isEmpty()) {
+                    GraphNode node = new GraphNode(nodeName, adjacencyList);
+                    graphManager.addNode(node);
+                }
             }
             ListenableGraph<String, DefaultEdge> graph = convertToJGraphTGraph(graphManager);
-            performOps(graph,graphManager);
+            performOps(graph, graphManager);
         } catch (IOException e) {
             System.err.println("Error reading JSON file: " + e.getMessage());
         }
@@ -61,7 +65,9 @@ public class Main {
 
     public static void performOps( ListenableGraph<String, DefaultEdge> graph,GraphManager graphManager )
     {
-//        GraphVisualizer.visualizeGraph(graph);
-//        performTopologicalSortAndVisualize(graphManager);
+        GraphVisualizer.visualizeGraph(graph,"OG Graph");
+        performTopologicalSortAndVisualize(graphManager);
+        detectAndPrintCycles(graph);
     }
+
 }

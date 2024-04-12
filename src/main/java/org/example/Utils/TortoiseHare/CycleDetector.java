@@ -51,6 +51,9 @@ public class CycleDetector {
         }
 
         onStack.remove(node);
-        path.pop();
+        if (!path.isEmpty()) {
+            path.pop();
+        }
     }
+
 }

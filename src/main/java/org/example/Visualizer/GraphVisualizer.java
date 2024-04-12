@@ -10,7 +10,7 @@ import java.awt.*;
 import java.util.*;
 
 public class GraphVisualizer {
-    public static void visualizeGraph(ListenableGraph<String, DefaultEdge> g) {
+    public static void visualizeGraph(ListenableGraph<String, DefaultEdge> g,  String title) {
         mxGraph graph = new mxGraph();
         Object parent = graph.getDefaultParent();
         graph.getModel().beginUpdate();
@@ -32,7 +32,7 @@ public class GraphVisualizer {
         }
         mxIGraphLayout layout = new mxCompactTreeLayout(graph);
         layout.execute(parent);
-        JFrame frame = new JFrame("Graph Visualization");
+        JFrame frame = new JFrame(title);
         mxGraphComponent graphComponent = new mxGraphComponent(graph);
         frame.getContentPane().add(graphComponent);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

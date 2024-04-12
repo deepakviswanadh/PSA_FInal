@@ -21,7 +21,7 @@ public class TopoSort {
         List<String> topologicalOrder = topologicalSort(graph);
 
         // Visualize the sorted graph
-        GraphVisualizer.visualizeGraph(graph);
+        GraphVisualizer.visualizeGraph(graph,"TopoSort");
     }
 
     private static ListenableGraph<String, DefaultEdge> convertToJGraphTGraph(GraphManager graphManager) {
