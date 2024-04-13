@@ -52,27 +52,45 @@ public class Main {
                 }
             }
 
-            ListenableGraph<String, DefaultEdge> graph = convertToJGraphTGraph(graphManager);
+            ListenableGraph<String, DefaultEdge> graph = convertToJGraphTGraph(graphManager, jsonNode);
             performOps(graph, graphManager);
         } catch (IOException e) {
             System.err.println("Error reading JSON file: " + e.getMessage());
         }
     }
 
-    public static ListenableGraph<String, DefaultEdge> convertToJGraphTGraph(GraphManager graphManager) {
-        List<GraphNode> nodes = graphManager.getGraphList();
+    public static ListenableGraph<String, DefaultEdge> convertToJGraphTGraph(GraphManager graphManager, JsonNode jsonNode) {
+        List<GraphNode> nodes = new ArrayList<>(graphManager.getGraphList()); // Make a copy of the list
         ListenableGraph<String, DefaultEdge> g =
                 new DefaultListenableGraph<>(new DefaultDirectedGraph<>(DefaultEdge.class));
+
+        // Add all vertices first
         for (GraphNode node : nodes) {
             g.addVertex(node.getName());
         }
+
+        // Then add edges
         for (GraphNode node : nodes) {
             String sourceNode = node.getName();
             for (String targetNode : node.getAdjacencyList()) {
-                //since not all adjacent nodes of source nodes have a source node from the json
-                //and not all source nodes have adjacent nodes
+                // Check if the target node is present in the graph
+                if (!g.containsVertex(targetNode)) {
+                    // If not present in the graph, create a node for it and add it to the graph and JSON
+                    g.addVertex(targetNode);
+                    graphManager.addNode(new GraphNode(targetNode, Collections.emptyList()));
+                    ((ObjectNode) jsonNode).putArray(targetNode);
+                    System.out.println("Node added for edge: " + targetNode);
+                }
+
+                // Check if both source and target vertices are present in the graph
                 if (g.containsVertex(sourceNode) && g.containsVertex(targetNode)) {
-                    g.addEdge(sourceNode, targetNode);
+                    if (g.addEdge(sourceNode, targetNode) != null) {
+                        System.out.println("Edge added: " + sourceNode + " -> " + targetNode);
+                    } else {
+                        System.out.println("Failed to add edge: " + sourceNode + " -> " + targetNode);
+                    }
+                } else {
+                    System.out.println("One or both vertices not found for edge: " + sourceNode + " -> " + targetNode);
                 }
             }
         }
@@ -81,17 +99,16 @@ public class Main {
 
     public static void performOps(ListenableGraph<String, DefaultEdge> graph, GraphManager graphManager) {
         GraphVisualizer.visualizeGraph(graph, "OG Graph");
-        detectAndPrintCycles(graph);
-        List<String> topologicalOrder = performTopologicalSortAndVisualize(graphManager);
-        System.out.println("Regular flow || Topo sort:");
-        Iterator<String> topoIterator = topologicalOrder.iterator();
-        for (String vertex : graph.vertexSet()) {
-            System.out.print(vertex);
-            if (topoIterator.hasNext()) {
-                System.out.print(" || " + topoIterator.next());
-            }
-            System.out.println();
-        }
+//        detectAndPrintCycles(graph);
+//        List<String> topologicalOrder = performTopologicalSortAndVisualize(graphManager);
+//        System.out.println("Regular flow || Topo sort:");
+//        Iterator<String> topoIterator = topologicalOrder.iterator();
+//        for (String vertex : graph.vertexSet()) {
+//            System.out.print(vertex);
+//            if (topoIterator.hasNext()) {
+//                System.out.print(" || " + topoIterator.next());
+//            }
+//            System.out.println();
+//        }
     }
-
 }
