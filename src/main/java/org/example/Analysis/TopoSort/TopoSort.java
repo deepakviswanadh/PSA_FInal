@@ -1,5 +1,6 @@
 package org.example.Analysis.TopoSort;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.example.GraphManager.GraphManager;
 import org.example.GraphNode.GraphNode;
 import org.example.Visualizer.GraphVisualizer;
@@ -14,9 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 public class TopoSort {
-    public static List<String> performTopologicalSortAndVisualize(GraphManager graphManager) {
-        // Convert GraphManager to ListenableGraph
-        ListenableGraph<String, DefaultEdge> graph = convertToJGraphTGraph(graphManager);
+    public static List<String> performTopologicalSortAndVisualize(ListenableGraph<String, DefaultEdge> graph,GraphManager graphManager, JsonNode jsonNode) {
 
         // Perform topological sorting
         List<String> topologicalOrder = topologicalSort(graph, graphManager);
@@ -25,24 +24,6 @@ public class TopoSort {
         visualizeTopologicalOrder(topologicalOrder);
 
         return topologicalOrder;
-    }
-
-    private static ListenableGraph<String, DefaultEdge> convertToJGraphTGraph(GraphManager graphManager) {
-        List<GraphNode> nodes = graphManager.getGraphList();
-        ListenableGraph<String, DefaultEdge> g =
-                new DefaultListenableGraph<>(new org.jgrapht.graph.DirectedAcyclicGraph<>(DefaultEdge.class));
-        for (GraphNode node : nodes) {
-            g.addVertex(node.getName());
-        }
-        for (GraphNode node : nodes) {
-            String sourceNode = node.getName();
-            for (String targetNode : node.getAdjacencyList()) {
-                if (g.containsVertex(sourceNode) && g.containsVertex(targetNode)) {
-                    g.addEdge(sourceNode, targetNode);
-                }
-            }
-        }
-        return g;
     }
 
     private static List<String> topologicalSort(ListenableGraph<String, DefaultEdge> graph, GraphManager graphManager) {
@@ -108,6 +89,6 @@ public class TopoSort {
         }
 
         // Visualize the ordered graph
-        GraphVisualizer.visualizeGraph(orderedGraph, "Topological Order");
+        GraphVisualizer.visualizeGraphInVerticalLine(orderedGraph, "Topological Order");
     }
 }

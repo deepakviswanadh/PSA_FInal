@@ -18,6 +18,8 @@ import static org.example.Analysis.TopoSort.TopoSort.performTopologicalSortAndVi
 import static org.example.Utils.TortoiseHare.DetectCycles.detectAndPrintCycles;
 
 public class Main {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
     public static void main(String[] args) {
         String filePath = "src/main/java/org/example/dependencies_out.json";
 
@@ -30,8 +32,7 @@ public class Main {
             while (fields.hasNext()) {
                 Map.Entry<String, JsonNode> entry = fields.next();
                 String nodeName = entry.getKey();
-                List<String> adjacencyList = objectMapper.convertValue(entry.getValue(), new TypeReference<List<String>>() {
-                });
+                List<String> adjacencyList = objectMapper.convertValue(entry.getValue(), new TypeReference<List<String>>() {});
                 GraphNode node = new GraphNode(nodeName, adjacencyList);
                 graphManager.addNode(node);
                 allStrings.add(nodeName);
@@ -43,39 +44,59 @@ public class Main {
                 }
             }
             ListenableGraph<String, DefaultEdge> graph = convertToJGraphTGraph(graphManager, jsonNode);
-            performOps(graph, graphManager);
+            performOps(graph, graphManager,jsonNode);
         } catch (IOException e) {
             System.err.println("Error reading JSON file: " + e.getMessage());
         }
     }
 
+
     public static ListenableGraph<String, DefaultEdge> convertToJGraphTGraph(GraphManager graphManager, JsonNode jsonNode) {
-        List<GraphNode> nodes = new ArrayList<>(graphManager.getGraphList()); // Make a copy of the list
         ListenableGraph<String, DefaultEdge> g =
                 new DefaultListenableGraph<>(new DefaultDirectedGraph<>(DefaultEdge.class));
-        for (GraphNode node : nodes) {
-            g.addVertex(node.getName());
-        }
-        for (GraphNode node : nodes) {
-            for (String targetNode : node.getAdjacencyList()) {
-                if (!g.containsVertex(targetNode)) {
-                    g.addVertex(targetNode);
-                    graphManager.addNode(new GraphNode(targetNode, Collections.emptyList()));
-                    ((ObjectNode) jsonNode).putArray(targetNode);
+        Set<String> visitedNodes = new HashSet<>(); // Keep track of visited nodes to avoid duplicate processing
+        Queue<String> nodeQueue = new LinkedList<>(); // Queue for BFS traversal
+
+        Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
+        while (fields.hasNext()) {
+            Map.Entry<String, JsonNode> entry = fields.next();
+            String nodeName = entry.getKey();
+            List<String> adjacencyList = objectMapper.convertValue(entry.getValue(), new TypeReference<List<String>>() {});
+            if (!graphManager.containsNode(nodeName)) {
+                graphManager.addNode(new GraphNode(nodeName, adjacencyList));
+            }
+            if (!visitedNodes.contains(nodeName)) {
+                visitedNodes.add(nodeName);
+                nodeQueue.add(nodeName);
+            }
+            while (!nodeQueue.isEmpty()) {
+                String currentNodeName = nodeQueue.poll();
+                GraphNode currentNode = graphManager.getNode(currentNodeName);
+                g.addVertex(currentNodeName);
+                for (String neighborName : currentNode.getAdjacencyList()) {
+                    g.addVertex(neighborName);
+                    g.addEdge(currentNodeName, neighborName);
+                    if (!graphManager.containsNode(neighborName)) {
+                        graphManager.addNode(new GraphNode(neighborName, Collections.emptyList()));
+                    }
+                    if (!visitedNodes.contains(neighborName)) {
+                        visitedNodes.add(neighborName);
+                        nodeQueue.add(neighborName);
+                    }
                 }
             }
         }
         return g;
     }
 
-    public static void performOps(ListenableGraph<String, DefaultEdge> graph, GraphManager graphManager) {
+    public static void performOps(ListenableGraph<String, DefaultEdge> graph, GraphManager graphManager, JsonNode jsonNode) {
         GraphVisualizer.visualizeGraph(graph, "OG Graph");
-//        if (detectAndPrintCycles(graph)) {
-//            System.out.println("Cycle is detected in the graph. Cannot perform" +
-//                    "Depedency Analysis");
-//            return;
-//        }
-//        List<String> topologicalOrder = performTopologicalSortAndVisualize(graphManager);
+        if (detectAndPrintCycles(graph)) {
+            System.out.println("Cycle is detected in the graph. Cannot perform" +
+                    "Dependency Analysis");
+            return;
+        }
+        List<String> topologicalOrder = performTopologicalSortAndVisualize(graph,graphManager,jsonNode);
 //        System.out.println("Regular flow || Topo sort:");
 //        Iterator<String> topoIterator = topologicalOrder.iterator();
 //        for (String vertex : graph.vertexSet()) {

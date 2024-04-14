@@ -60,7 +60,7 @@ public class GraphVisualizer {
         int currentRadius = radius;
         for (String vertex : vertices) {
             int x = (int) (centerX + currentRadius * Math.cos(angle));
-            int y = (int) (centerY + currentRadius * Math.sin(angle));
+            int y = (int) (centerY + currentRadius * Math.sin(angle))+50;
             vertexPositions.put(vertex, new Point(x, y));
             angle += angleStep;
             nodesInCurrentCircle++;
@@ -75,5 +75,57 @@ public class GraphVisualizer {
         }
         return vertexPositions;
     }
+
+    public static void visualizeGraphInVerticalLine(ListenableGraph<String, DefaultEdge> g, String title) {
+        mxGraph graph = new mxGraph();
+        Object parent = graph.getDefaultParent();
+        graph.getModel().beginUpdate();
+        try {
+            Map<String, Object> vertexMap = new HashMap<>();
+            Set<String> vertices = g.vertexSet();
+
+            // Calculate the total height available for the graph
+            int totalHeight = 800; // Adjust this as needed
+
+            // Calculate the vertical spacing between nodes
+            int spacing = totalHeight / (vertices.size() + 1);
+
+            // Fixed x-coordinate for all nodes
+            int x = 50;
+
+            // Initial y-coordinate
+            int y = spacing;
+
+            // Insert vertices and spread them out vertically
+            for (String vertex : vertices) {
+                Object vertexObject = graph.insertVertex(parent, null, vertex, x, y, 80, 30);
+                vertexMap.put(vertex, vertexObject);
+                y += spacing+50; // Increment y-coordinate for the next vertex
+            }
+
+            // Connect vertices sequentially
+            for (DefaultEdge edge : g.edgeSet()) {
+                String source = g.getEdgeSource(edge);
+                String target = g.getEdgeTarget(edge);
+                Object sourceVertex = vertexMap.get(source);
+                Object targetVertex = vertexMap.get(target);
+                graph.insertEdge(parent, null, "", sourceVertex, targetVertex);
+            }
+        } finally {
+            graph.getModel().endUpdate();
+        }
+
+        // Display the graph
+        JFrame frame = new JFrame(title);
+        mxGraphComponent graphComponent = new mxGraphComponent(graph);
+        frame.getContentPane().add(graphComponent);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setPreferredSize(new Dimension(200, 2500)); // Adjust width and height as needed
+        frame.pack();
+        frame.setVisible(true);
+    }
+
+
+
 
 }
