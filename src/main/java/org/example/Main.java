@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.example.Analysis.MaxCompatibility.MaxCompatibility;
 import org.example.GraphManager.GraphManager;
 import org.example.GraphNode.GraphNode;
 import org.example.Visualizer.GraphVisualizer;
@@ -44,7 +45,8 @@ public class Main {
                 }
             }
             ListenableGraph<String, DefaultEdge> graph = convertToJGraphTGraph(graphManager, jsonNode);
-            performOps(graph, graphManager,jsonNode);
+//            performOps(graph, graphManager,jsonNode);
+            MaxCompatibility.resolveDependencies(graphManager);
         } catch (IOException e) {
             System.err.println("Error reading JSON file: " + e.getMessage());
         }
@@ -54,8 +56,8 @@ public class Main {
     public static ListenableGraph<String, DefaultEdge> convertToJGraphTGraph(GraphManager graphManager, JsonNode jsonNode) {
         ListenableGraph<String, DefaultEdge> g =
                 new DefaultListenableGraph<>(new DefaultDirectedGraph<>(DefaultEdge.class));
-        Set<String> visitedNodes = new HashSet<>(); // Keep track of visited nodes to avoid duplicate processing
-        Queue<String> nodeQueue = new LinkedList<>(); // Queue for BFS traversal
+        Set<String> visitedNodes = new HashSet<>();
+        Queue<String> nodeQueue = new LinkedList<>();
 
         Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
         while (fields.hasNext()) {

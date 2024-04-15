@@ -57,10 +57,10 @@ public class GraphVisualizer {
         int circles = (int) Math.ceil(Math.sqrt(vertices.size())); // Number of circles needed to accommodate all vertices
         int nodesPerCircle = (int) Math.ceil(vertices.size() / (double) circles); // Number of nodes per circle
         int nodesInCurrentCircle = 0;
-        int currentRadius = radius;
         for (String vertex : vertices) {
-            int x = (int) (centerX + currentRadius * Math.cos(angle));
-            int y = (int) (centerY + currentRadius * Math.sin(angle))+50;
+            double adjustedAngle = angle + circleIndex * (2 * Math.PI / circles);
+            int x = (int) (centerX + radius * Math.cos(adjustedAngle));
+            int y = (int) (centerY + radius * Math.sin(adjustedAngle));
             vertexPositions.put(vertex, new Point(x, y));
             angle += angleStep;
             nodesInCurrentCircle++;
@@ -68,13 +68,14 @@ public class GraphVisualizer {
                 // Move to the next circle
                 circleIndex++;
                 nodesInCurrentCircle = 0;
-                currentRadius += 300; // Increase the distance between circles
+                radius += 200; // Increase the radius for the next circle
                 angleStep = 2 * Math.PI / Math.min(vertices.size() - (circleIndex * nodesPerCircle), nodesPerCircle);
-                angle = circleIndex * (2 * Math.PI / circles);
+                angle = 0;
             }
         }
         return vertexPositions;
     }
+
 
     public static void visualizeGraphInVerticalLine(ListenableGraph<String, DefaultEdge> g, String title) {
         mxGraph graph = new mxGraph();
