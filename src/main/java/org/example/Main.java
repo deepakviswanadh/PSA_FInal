@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.example.Analysis.DependencyTree.DependencyTree;
+import org.example.Analysis.LeastDependent.LeastDependent;
 import org.example.Analysis.MaxCompatibility.MaxCompatibility;
 import org.example.Analysis.StronglyConnected.StronglyConnected;
 import org.example.Analysis.StronglyConnected.TarjanAlgorithm;
@@ -94,28 +95,28 @@ public class Main {
     }
 
     public static void performOps(ListenableGraph<String, DefaultEdge> graph, GraphManager graphManager, JsonNode jsonNode) {
-        //GraphVisualizer.visualizeGraph(graph, "OG Graph");
+        GraphVisualizer.visualizeGraph(graph, "OG Graph");
         if (detectAndPrintCycles(graph)) {
             System.out.println("Cycle is detected in the graph. Cannot perform" +
                     "Dependency Analysis");
             return;
         }
-        //List<String> topologicalOrder = performTopologicalSortAndVisualize(graph,graphManager,jsonNode);
-//        System.out.println("Regular flow || Topo sort:");
-//        Iterator<String> topoIterator = topologicalOrder.iterator();
-//        for (String vertex : graph.vertexSet()) {
-//            System.out.print(vertex);
-//            if (topoIterator.hasNext()) {
-//                System.out.print(" || " + topoIterator.next());
-//            }
-//            System.out.println();
-//        }
+        List<String> topologicalOrder = performTopologicalSortAndVisualize(graph,graphManager,jsonNode);
+        System.out.println("Regular flow || Topo sort:");
+        Iterator<String> topoIterator = topologicalOrder.iterator();
+        for (String vertex : graph.vertexSet()) {
+            System.out.print(vertex);
+            if (topoIterator.hasNext()) {
+                System.out.print(" || " + topoIterator.next());
+            }
+            System.out.println();
+        }
 
         //dependency analysis
 
-//        MaxCompatibility.resolveDependencies(graphManager);
-//        DependencyTree dependencyTree = new DependencyTree();
-//        dependencyTree.analyzeDependencyResolution(graphManager);
+        MaxCompatibility.resolveDependencies(graphManager);
+        DependencyTree dependencyTree = new DependencyTree();
+        dependencyTree.analyzeDependencyResolution(graphManager);
 
 
 
@@ -123,5 +124,11 @@ public class Main {
 
         StronglyConnected stronglyConnected = new StronglyConnected();
         stronglyConnected.deriveSCComponents(graphManager);
+
+
+        //least connected analysis
+
+        LeastDependent leastDependent = new LeastDependent();
+        leastDependent.assessLeastDependent(graphManager);
     }
 }
