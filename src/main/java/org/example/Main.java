@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.example.Analysis.DependencyTree.DependencyTree;
 import org.example.Analysis.MaxCompatibility.MaxCompatibility;
+import org.example.Analysis.StronglyConnected.StronglyConnected;
+import org.example.Analysis.StronglyConnected.TarjanAlgorithm;
 import org.example.GraphManager.GraphManager;
 import org.example.GraphNode.GraphNode;
 import org.example.Visualizer.GraphVisualizer;
@@ -46,10 +48,7 @@ public class Main {
                 }
             }
             ListenableGraph<String, DefaultEdge> graph = convertToJGraphTGraph(graphManager, jsonNode);
-//            performOps(graph, graphManager,jsonNode);
-            MaxCompatibility.resolveDependencies(graphManager);
-            DependencyTree dependencyTree = new DependencyTree();
-            //dependencyTree.analyzeDependencyResolution(graphManager);
+            performOps(graph, graphManager,jsonNode);
         } catch (IOException e) {
             System.err.println("Error reading JSON file: " + e.getMessage());
         }
@@ -95,13 +94,13 @@ public class Main {
     }
 
     public static void performOps(ListenableGraph<String, DefaultEdge> graph, GraphManager graphManager, JsonNode jsonNode) {
-        GraphVisualizer.visualizeGraph(graph, "OG Graph");
+        //GraphVisualizer.visualizeGraph(graph, "OG Graph");
         if (detectAndPrintCycles(graph)) {
             System.out.println("Cycle is detected in the graph. Cannot perform" +
                     "Dependency Analysis");
             return;
         }
-        List<String> topologicalOrder = performTopologicalSortAndVisualize(graph,graphManager,jsonNode);
+        //List<String> topologicalOrder = performTopologicalSortAndVisualize(graph,graphManager,jsonNode);
 //        System.out.println("Regular flow || Topo sort:");
 //        Iterator<String> topoIterator = topologicalOrder.iterator();
 //        for (String vertex : graph.vertexSet()) {
@@ -111,5 +110,18 @@ public class Main {
 //            }
 //            System.out.println();
 //        }
+
+        //dependency analysis
+
+//        MaxCompatibility.resolveDependencies(graphManager);
+//        DependencyTree dependencyTree = new DependencyTree();
+//        dependencyTree.analyzeDependencyResolution(graphManager);
+
+
+
+        //strongly connected analysis
+
+        StronglyConnected stronglyConnected = new StronglyConnected();
+        stronglyConnected.deriveSCComponents(graphManager);
     }
 }
