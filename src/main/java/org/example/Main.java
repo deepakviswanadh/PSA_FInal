@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.example.Analysis.DependencyTree.DependencyTree;
 import org.example.Analysis.MaxCompatibility.MaxCompatibility;
 import org.example.GraphManager.GraphManager;
 import org.example.GraphNode.GraphNode;
@@ -47,6 +48,8 @@ public class Main {
             ListenableGraph<String, DefaultEdge> graph = convertToJGraphTGraph(graphManager, jsonNode);
 //            performOps(graph, graphManager,jsonNode);
             MaxCompatibility.resolveDependencies(graphManager);
+            DependencyTree dependencyTree = new DependencyTree();
+            //dependencyTree.analyzeDependencyResolution(graphManager);
         } catch (IOException e) {
             System.err.println("Error reading JSON file: " + e.getMessage());
         }
