@@ -7,9 +7,16 @@ public class GraphNode {
     private String name;
     private List<String> adjacencyList;
 
+    public boolean isVisited;
+
+
     public GraphNode(String name, List<String> adjacencyList) {
         this.name = name;
         this.adjacencyList = adjacencyList;
+        this.isVisited=false;
+    }
+    public void setVisited(boolean visited) {
+        isVisited = visited;
     }
 
     public String getName() {

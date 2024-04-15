@@ -28,7 +28,26 @@ public class GraphManager {
     }
 
 
+    public GraphNode getNode(String name) {
+        for (GraphNode node : graphList) {
+            if (node.getName().equals(name)) {
+                return node;
+            }
+        }
+        return null; // Node not found
+    }
+
     public void clearGraphList() {
         graphList.clear();
     }
+
+    public boolean containsNode(String name) {
+        for (GraphNode node : graphList) {
+            if (node.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
