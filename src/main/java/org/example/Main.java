@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.example.Analysis.DependencyTree.DependencyTree;
 import org.example.Analysis.LeastDependent.LeastDependent;
 import org.example.Analysis.MaxCompatibility.MaxCompatibility;
+import org.example.Analysis.NodeReduction.NodeReduction;
 import org.example.Analysis.StronglyConnected.StronglyConnected;
 import org.example.Analysis.StronglyConnected.TarjanAlgorithm;
 import org.example.GraphManager.GraphManager;
@@ -20,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import static org.example.Analysis.TopoSort.TopoSort.performTopologicalSortAndVisualize;
+import static org.example.Utils.Rest.ConvertToVisualizer.convertToJGraphTGraph;
 import static org.example.Utils.TortoiseHare.DetectCycles.detectAndPrintCycles;
 
 public class Main {
@@ -48,7 +50,7 @@ public class Main {
                     ((ObjectNode) jsonNode).putArray(str);
                 }
             }
-            ListenableGraph<String, DefaultEdge> graph = convertToJGraphTGraph(graphManager, jsonNode);
+            ListenableGraph<String, DefaultEdge> graph = convertToJGraphTGraph(graphManager, jsonNode, objectMapper,true);
             performOps(graph, graphManager,jsonNode);
         } catch (IOException e) {
             System.err.println("Error reading JSON file: " + e.getMessage());
@@ -56,79 +58,48 @@ public class Main {
     }
 
 
-    public static ListenableGraph<String, DefaultEdge> convertToJGraphTGraph(GraphManager graphManager, JsonNode jsonNode) {
-        ListenableGraph<String, DefaultEdge> g =
-                new DefaultListenableGraph<>(new DefaultDirectedGraph<>(DefaultEdge.class));
-        Set<String> visitedNodes = new HashSet<>();
-        Queue<String> nodeQueue = new LinkedList<>();
-
-        Iterator<Map.Entry<String, JsonNode>> fields = jsonNode.fields();
-        while (fields.hasNext()) {
-            Map.Entry<String, JsonNode> entry = fields.next();
-            String nodeName = entry.getKey();
-            List<String> adjacencyList = objectMapper.convertValue(entry.getValue(), new TypeReference<List<String>>() {});
-            if (!graphManager.containsNode(nodeName)) {
-                graphManager.addNode(new GraphNode(nodeName, adjacencyList));
-            }
-            if (!visitedNodes.contains(nodeName)) {
-                visitedNodes.add(nodeName);
-                nodeQueue.add(nodeName);
-            }
-            while (!nodeQueue.isEmpty()) {
-                String currentNodeName = nodeQueue.poll();
-                GraphNode currentNode = graphManager.getNode(currentNodeName);
-                g.addVertex(currentNodeName);
-                for (String neighborName : currentNode.getAdjacencyList()) {
-                    g.addVertex(neighborName);
-                    g.addEdge(currentNodeName, neighborName);
-                    if (!graphManager.containsNode(neighborName)) {
-                        graphManager.addNode(new GraphNode(neighborName, Collections.emptyList()));
-                    }
-                    if (!visitedNodes.contains(neighborName)) {
-                        visitedNodes.add(neighborName);
-                        nodeQueue.add(neighborName);
-                    }
-                }
-            }
-        }
-        return g;
-    }
-
     public static void performOps(ListenableGraph<String, DefaultEdge> graph, GraphManager graphManager, JsonNode jsonNode) {
         GraphVisualizer.visualizeGraph(graph, "OG Graph");
-        if (detectAndPrintCycles(graph)) {
-            System.out.println("Cycle is detected in the graph. Cannot perform" +
-                    "Dependency Analysis");
-            return;
+//        if (detectAndPrintCycles(graph)) {
+//            System.out.println("Cycle is detected in the graph. Cannot perform" +
+//                    "Dependency Analysis");
+//            return;
+//        }
+//        List<String> topologicalOrder = performTopologicalSortAndVisualize(graph,graphManager,jsonNode);
+//        System.out.println("Regular flow || Topo sort:");
+//        Iterator<String> topoIterator = topologicalOrder.iterator();
+//        for (String vertex : graph.vertexSet()) {
+//            System.out.print(vertex);
+//            if (topoIterator.hasNext()) {
+//                System.out.print(" || " + topoIterator.next());
+//            }
+//            System.out.println();
+//        }
+//
+//        //dependency analysis
+//
+//        MaxCompatibility.resolveDependencies(graphManager);
+////        DependencyTree dependencyTree = new DependencyTree();
+////        dependencyTree.analyzeDependencyResolution(graphManager);
+//
+//
+//
+//        //strongly connected analysis
+//
+//        StronglyConnected stronglyConnected = new StronglyConnected();
+//        stronglyConnected.deriveSCComponents(graphManager);
+//
+//
+//        //least connected analysis
+//
+//        LeastDependent leastDependent = new LeastDependent();
+//        leastDependent.assessLeastDependent(graphManager);
+
+        List<GraphNode> compressedGraph = NodeReduction.compressGraph(graphManager);
+
+        // Output the compressed graph for verification
+        for (GraphNode node : compressedGraph) {
+            System.out.println("Node [" + node.getName() + "] -> " + node.getAdjacencyList());
         }
-        List<String> topologicalOrder = performTopologicalSortAndVisualize(graph,graphManager,jsonNode);
-        System.out.println("Regular flow || Topo sort:");
-        Iterator<String> topoIterator = topologicalOrder.iterator();
-        for (String vertex : graph.vertexSet()) {
-            System.out.print(vertex);
-            if (topoIterator.hasNext()) {
-                System.out.print(" || " + topoIterator.next());
-            }
-            System.out.println();
-        }
-
-        //dependency analysis
-
-        MaxCompatibility.resolveDependencies(graphManager);
-        DependencyTree dependencyTree = new DependencyTree();
-        dependencyTree.analyzeDependencyResolution(graphManager);
-
-
-
-        //strongly connected analysis
-
-        StronglyConnected stronglyConnected = new StronglyConnected();
-        stronglyConnected.deriveSCComponents(graphManager);
-
-
-        //least connected analysis
-
-        LeastDependent leastDependent = new LeastDependent();
-        leastDependent.assessLeastDependent(graphManager);
     }
 }
