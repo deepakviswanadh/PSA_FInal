@@ -74,19 +74,20 @@ public class Main {
         MaxCompatibility.resolveDependencies(graphManager);
 //        DependencyTree dependencyTree = new DependencyTree();
 //        dependencyTree.analyzeDependencyResolution(graphManager);
+        System.out.println("");
 
 
                                             //strongly connected analysis
         System.out.println("---------------------------Strongly connected components Analysis-------------------------------");
         StronglyConnected stronglyConnected = new StronglyConnected();
         stronglyConnected.deriveSCComponents(graphManager);
-
+        System.out.println("");
 
 
                                             // Graph Reduction Analysis
         System.out.println("---------------------------Graph Reduction Analysis-------------------------------");
         NodeReduction.compressGraph(graphManager.getGraphList());
-
+        System.out.println("");
 
                                             //least connected analysis
         System.out.println("---------------------------Least Dependent Nodes Analysis-------------------------------");

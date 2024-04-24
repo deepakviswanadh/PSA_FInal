@@ -11,26 +11,26 @@ public class StronglyConnected {
         TarjanAlgorithm tarjan = new TarjanAlgorithm();
         List<List<GraphNode>> stronglyConnectedComponents = tarjan.findStronglyConnectedComponents(graphManager);
 
-        // Print the strongly connected components
         for (int i = 0; i < stronglyConnectedComponents.size(); i++) {
             List<GraphNode> component = stronglyConnectedComponents.get(i);
-
-            // Exclude nodes with empty adjacency list
             component.removeIf(node -> node.getAdjacencyList().isEmpty());
 
-            // Print component size
             int componentSize = component.size();
 
             if (componentSize > 0) {
-                // Print component details
-                System.out.println("Strongly connected nodes:");
+                System.out.print("Strongly connected component " + ": ");
+                for (int j = 0; j < component.size(); j++) {
+                    GraphNode node = component.get(j);
+                    System.out.print(node.getName() + (j < component.size() - 1 ? " -> " : ""));
+                }
+                System.out.println(); // Newline after each component
                 for (GraphNode node : component) {
-                    System.out.println("- " + node.getName());
-                    System.out.println("  Adjacency List: " + node.getAdjacencyList());
+                    System.out.println("  " + node.getName() + " Adjacency List: " + node.getAdjacencyList());
                 }
                 System.out.println("------------------------");
             }
 
         }
     }
+
 }
