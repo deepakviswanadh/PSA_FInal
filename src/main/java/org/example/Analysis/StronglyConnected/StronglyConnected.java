@@ -23,7 +23,7 @@ public class StronglyConnected {
 
             if (componentSize > 0) {
                 // Print component details
-                System.out.println("Nodes:");
+                System.out.println("Strongly connected nodes:");
                 for (GraphNode node : component) {
                     System.out.println("- " + node.getName());
                     System.out.println("  Adjacency List: " + node.getAdjacencyList());

@@ -14,9 +14,7 @@ public class MaxCompatibility {
 
     public static void resolveDependencies(GraphManager graphManager) {
 
-        // Take only the first 50 packages
         List<String> packageNames = graphManager.getGraphList().stream()
-                .limit(50)
                 .map(GraphNode::getName)
                 .collect(Collectors.toList());
 

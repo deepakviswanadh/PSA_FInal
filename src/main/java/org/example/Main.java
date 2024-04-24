@@ -59,47 +59,43 @@ public class Main {
 
 
     public static void performOps(ListenableGraph<String, DefaultEdge> graph, GraphManager graphManager, JsonNode jsonNode) {
+
         GraphVisualizer.visualizeGraph(graph, "OG Graph");
-//        if (detectAndPrintCycles(graph)) {
-//            System.out.println("Cycle is detected in the graph. Cannot perform" +
-//                    "Dependency Analysis");
-//            return;
-//        }
-//        List<String> topologicalOrder = performTopologicalSortAndVisualize(graph,graphManager,jsonNode);
-//        System.out.println("Regular flow || Topo sort:");
-//        Iterator<String> topoIterator = topologicalOrder.iterator();
-//        for (String vertex : graph.vertexSet()) {
-//            System.out.print(vertex);
-//            if (topoIterator.hasNext()) {
-//                System.out.print(" || " + topoIterator.next());
-//            }
-//            System.out.println();
-//        }
-//
-//        //dependency analysis
-//
-//        MaxCompatibility.resolveDependencies(graphManager);
-////        DependencyTree dependencyTree = new DependencyTree();
-////        dependencyTree.analyzeDependencyResolution(graphManager);
-//
-//
-//
-//        //strongly connected analysis
-//
-//        StronglyConnected stronglyConnected = new StronglyConnected();
-//        stronglyConnected.deriveSCComponents(graphManager);
-//
-//
-//        //least connected analysis
-//
-//        LeastDependent leastDependent = new LeastDependent();
-//        leastDependent.assessLeastDependent(graphManager);
 
-        List<GraphNode> compressedGraph = NodeReduction.compressGraph(graphManager);
 
-        // Output the compressed graph for verification
-        for (GraphNode node : compressedGraph) {
-            System.out.println("Node [" + node.getName() + "] -> " + node.getAdjacencyList());
+        if (detectAndPrintCycles(graph)) {
+            System.out.println("Cycle is detected in the graph. Cannot perform" +
+                    "Dependency Analysis");
+            return;
         }
+
+                                            //version resolution analysis
+        System.out.println("---------------------------Max Compatibility Analysis-------------------------------");
+        MaxCompatibility.resolveDependencies(graphManager);
+//        DependencyTree dependencyTree = new DependencyTree();
+//        dependencyTree.analyzeDependencyResolution(graphManager);
+
+
+                                            //strongly connected analysis
+        System.out.println("---------------------------Strongly connected components Analysis-------------------------------");
+        StronglyConnected stronglyConnected = new StronglyConnected();
+        stronglyConnected.deriveSCComponents(graphManager);
+
+
+
+                                            // Graph Reduction Analysis
+        System.out.println("---------------------------Graph Reduction Analysis-------------------------------");
+        NodeReduction.compressGraph(graphManager.getGraphList());
+
+
+                                            //least connected analysis
+        System.out.println("---------------------------Least Dependent Nodes Analysis-------------------------------");
+        LeastDependent leastDependent = new LeastDependent();
+        leastDependent.assessLeastDependent(graphManager);
+
+
+                                                //TopoSort
+        performTopologicalSortAndVisualize(graph,graphManager,jsonNode);
+
     }
 }
